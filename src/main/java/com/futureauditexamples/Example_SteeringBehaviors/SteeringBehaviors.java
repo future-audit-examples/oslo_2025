@@ -8,10 +8,16 @@ import java.awt.event.ActionListener;
 public class SteeringBehaviors extends JPanel implements ActionListener {
 
     private static final int FPS = 60;
-    private static final double SEEK_SLOW_RADIUS = 150;   // chasers slow inside this radius
-    private static final double FLEE_PANIC_RADIUS = 200;   // runner flees inside this radius
-    private static final double SEPARATION_RADIUS = 80;   // px – how close is “too close”
-    private static final double SEPARATION_STRENGTH = 0.6; // 0-1 (tweak until it feels right)
+    private static final double SEPARATION_STRENGTH = 0.6;
+
+    // Chasers slow down inside this radius
+    private static final double SEEK_SLOW_RADIUS = 150;
+
+    // Runner flees inside this radius
+    private static final double FLEE_PANIC_RADIUS = 200;
+
+    // Too close
+    private static final double SEPARATION_RADIUS = 80;
 
     private final Agent runner;
     private final Agent seekerA;
@@ -30,15 +36,15 @@ public class SteeringBehaviors extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
 
-        // runner decides whether to flee
+        // Runner decides whether to flee
         fleeIfNear(seekerA);
         fleeIfNear(seekerB);
 
-        // each chaser seeks runner
+        // Chasers seek runner
         seekWithArrival(seekerA);
         seekWithArrival(seekerB);
 
-        // keep chasers from sitting on top of each other
+        // Keep chasers from sitting on top of each other
         separate(seekerA, seekerB);
 
         runner.update();
@@ -90,23 +96,28 @@ public class SteeringBehaviors extends JPanel implements ActionListener {
     private void separate(Agent a, Agent b) {
         Vector2D diff = a.position.subtract(b.position);
         double d = diff.length();
-        if (d > 0 && d < SEPARATION_RADIUS) {          // inside “too close” zone
+
+        // Too close
+        if (d > 0 && d < SEPARATION_RADIUS) {
             double scale = (1 - d / SEPARATION_RADIUS) * SEPARATION_STRENGTH;
             Vector2D force = diff.normalize().multiply(scale * a.maxForce);
-            a.applyForce(force);                       // push a away from b
-            b.applyForce(force.multiply(-1));          // equal & opposite on b
+
+            // Push a away from b
+            a.applyForce(force);
+
+            // Push b away from a
+            b.applyForce(force.multiply(-1));
         }
     }
 
     public static void main(String[] args) {
         JFrame f = new JFrame();
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
         int width = 1000;
         int height = 700;
         f.add(new SteeringBehaviors(width, height));
-        f.pack(); // sizes frame to preferred size of content
-        f.setLocationRelativeTo(null); // centre window on screen
+        f.pack();
+        f.setLocationRelativeTo(null);
         f.setVisible(true);
     }
 }
